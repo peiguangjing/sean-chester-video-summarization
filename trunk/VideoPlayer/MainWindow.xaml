@@ -1,0 +1,35 @@
+﻿<Window x:Class="VideoPlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:VideoPlayer"
+        Title="MainWindow" Height="450" Width="525">
+
+    <Window.Resources>
+
+        <!--<local:Video x:Key="video" />-->
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80*"></RowDefinition>
+            <RowDefinition Height="20*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Menu Grid.Row="0" Grid.Column="0" Height="25" VerticalAlignment="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open..." Click="FileOpen_Click" />
+                <Separator />
+                <MenuItem Header="_Exit" />
+            </MenuItem>
+        </Menu>
+        <Image  Source="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=video.Frame}" Height="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=video.VideoHeight}" HorizontalAlignment="Center" Margin="0 35 0 0" Name="image1" Stretch="Fill" VerticalAlignment="Top" Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=video.VideoWidth}" />
+        <Button Content="Play" Grid.Row="1" Height="23" HorizontalAlignment="Left" Margin="48,27,0,0" Name="button1" VerticalAlignment="Top" Width="75"  Click="Play_Click"/>
+        <Button Content="Rewind" Height="23" HorizontalAlignment="Left" Margin="170,27,0,0" Name="button2" VerticalAlignment="Top" Width="75" Grid.Row="1" />
+        <Button Content="Fast Forward" Height="23" HorizontalAlignment="Left" Margin="291,27,0,0" Name="button3" VerticalAlignment="Top" Width="75" Grid.Row="1" />
+        <Slider Grid.Row="1" Height="23" HorizontalAlignment="Left" Margin="391,27,0,0" Name="slider1" VerticalAlignment="Top" Width="100" />
+        <Slider Height="23" HorizontalAlignment="Center" Margin="0,0,0,20" Name="slider2" VerticalAlignment="Bottom" Width="178" />
+        <Label Content="Volume" Grid.Row="1" Height="28" HorizontalAlignment="Left" Margin="414,0,0,0" Name="label1" VerticalAlignment="Top" />
+    </Grid>
+    
+</Window>

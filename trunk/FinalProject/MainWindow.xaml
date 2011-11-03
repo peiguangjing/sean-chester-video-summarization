@@ -1,0 +1,32 @@
+﻿<Window x:Class="FinalProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Title="MainWindow"  MinWidth="800" MinHeight="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80*"></RowDefinition>
+            <RowDefinition Height="20*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="15*"></ColumnDefinition>
+            <ColumnDefinition Width="15*"></ColumnDefinition>
+            <ColumnDefinition Width="70*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <MediaElement  Source="C:\Users\Sean\Documents\My Dropbox\CSCI-576\final project\FinalProject\FinalProject\Wildlife.wmv" Height="{Binding Path=VideoHeight}" Width="{Binding Path=VideoWidth}"  Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" LoadedBehavior="Manual" UnloadedBehavior="Stop" Name="mediaElement1" VerticalAlignment="Center" />
+        <Button Grid.Row="1" Grid.Column="2" Content="Open Source File" Height="23" HorizontalAlignment="Left" Name="button1" VerticalAlignment="Center" Width="106" Click="OnOpenSourceClick" />
+        <Button Grid.Row="1" Grid.Column="2" Content="Play Source File" Height="23" HorizontalAlignment="Center" Name="button2" VerticalAlignment="Center" Width="92" Click="OnPlaySourceClick" />
+        <Button Grid.Row="1" Grid.Column="2" Content="Convert to RGB" Height="23" HorizontalAlignment="Right"  Name="button3" VerticalAlignment="Center" Width="102" Click="OnConvertToRGBClick" />
+        <TextBox Text="{Binding Path=VideoWidth}" Grid.Column="1" Height="23" HorizontalAlignment="Center" Margin="0,56,0,0" Name="textBox1" VerticalAlignment="Top" Width="103"  />
+        <Label Grid.Column="0" Content="Video Width" Height="28" HorizontalAlignment="Center" Margin="0,56,0,0" Name="label1" VerticalAlignment="Top" />
+        <TextBox Text="{Binding Path=VideoHeight}" Grid.Column="1" Height="23" HorizontalAlignment="Center" Margin="0,96,0,0" Name="textBox2" VerticalAlignment="Top" Width="103"  />
+        <Label Grid.Column="0" Content="Video Height" Height="28" HorizontalAlignment="Center" Margin="0,96,0,0" Name="label2" VerticalAlignment="Top" />
+        <TextBox Text="{Binding Path=SecondsToParse}" Grid.Column="1" Height="23" HorizontalAlignment="Center" Margin="0,136,0,0" Name="textBox3" VerticalAlignment="Top" Width="103"  />
+        <Label Grid.Column="0" Content="Seconds to Convert" Height="28" HorizontalAlignment="Center" Margin="0,136,0,0" Name="label3" VerticalAlignment="Top" />
+        <TextBox Text="{Binding Path=SourceFile}" Grid.Column="1" Height="23" HorizontalAlignment="Center" Margin="0,176,0,0" Name="textBox4" VerticalAlignment="Top" Width="103" IsReadOnly="True" />
+        <Label Grid.Column="0" Content="Input File" Height="28" HorizontalAlignment="Center" Margin="0,176,0,0" Name="label4" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Height="23" HorizontalAlignment="Center" Margin="0,216,0,0" Name="textBox5" VerticalAlignment="Top" Width="103"  />
+        <Label Grid.Column="0" Content="Output File" Height="28" HorizontalAlignment="Center" Margin="0,216,0,0" Name="label5" VerticalAlignment="Top" />
+
+    </Grid>
+</Window>
