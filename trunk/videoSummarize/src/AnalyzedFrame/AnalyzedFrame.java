@@ -14,7 +14,7 @@ public class AnalyzedFrame {
 	private final int FrameWidth = 320;
 	private final int FrameHeight = 240;
 	private final int MacroBlockSize = 4; // 4x4
-	private final int MacroBlockSearchArea = 1; // (MacroBlockSize + MacroBlockSearchArea)x(MacroBlockSize + MacroBlockSearchArea) search area
+	private final int MacroBlockSearchArea = 2; // (MacroBlockSize + MacroBlockSearchArea)x(MacroBlockSize + MacroBlockSearchArea) search area
 
 	private int FrameIndex = -1;
 	private int SceneIndex = -1;
@@ -66,7 +66,7 @@ public class AnalyzedFrame {
 					for(int pixelY = (beginY + searchTargetY) >= 0 ? beginY + searchTargetY : 0; pixelY < beginY + MacroBlockSize && pixelY < FrameHeight; pixelY++)
 					{
 						targetIndex = Index.FromXYtoIndex(pixelX, pixelY);
-						originalIndex = Index.FromXYtoIndex(beginX+1, beginY+1);
+						originalIndex = Index.FromXYtoIndex(beginX+MacroBlockSearchArea, beginY+MacroBlockSearchArea);
 						currentBlockDifferenceSum += Math.abs(frame[targetIndex] - frame[originalIndex]);
 						currentBlockDifferenceSum += Math.abs(frame[targetIndex + ColorComponent.GREEN.Offset()] - frame[originalIndex + ColorComponent.GREEN.Offset()]);
 						currentBlockDifferenceSum += Math.abs(frame[targetIndex + ColorComponent.BLUE.Offset()] - frame[originalIndex + ColorComponent.BLUE.Offset()]);

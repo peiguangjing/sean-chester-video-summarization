@@ -4,40 +4,44 @@ import java.io.*;
 import java.util.*; 
 
 import shot.Shot;
+import sound.WaveUtility.WaveUtility;
 import utility.ShotComparator;
+import utility.ShotTimeComparator;
 
 import AnalyzedFrame.AnalyzedFrame;
 
-import sound.WaveUtility.WaveUtility;
-
 public class GoThroughVideo{
-	
-	private RandomAccessFile imageStream;
 	private FileInputStream audioStream;
+	private int bufferSeconds = 5;
+	private RandomAccessFile imageStream;
 	private final int width = 320;
 	private final int height = 240;
 	private final int singleImageSize = 3*this.width*this.height; //how many bytes per picture
-	private int bufferSeconds = 5; 
-	private int framesPerSecond = 24;
-	private int IMAGEBUFFERSIZE = this.bufferSeconds * this.framesPerSecond; //cache how many images
+	private int IMAGEBUFFERSIZE = 120; //cache how many images
 	private int percentage = 20;
 	private Vector<AnalyzedFrame> AnalyzedFrames = new Vector<AnalyzedFrame>();
 	private Vector<Shot> Shots = new Vector<Shot>();
-	private Vector<Shot> FinalSummary = new Vector<Shot>();
+	private PriorityQueue<Shot> FinalSummary = new PriorityQueue<Shot>(20, new ShotTimeComparator());
 	private PriorityQueue<Shot> ShotPriorityQueue = new PriorityQueue<Shot>(20, new ShotComparator());
 	private int LastShotStartIndex = 0;
 	private short[][] bytesBuffer;
 	private float sourceLength = 0.0f;
+	private float targetSummaryLength = 0.0f;
 	
-	public GoThroughVideo (RandomAccessFile imageStream, FileInputStream audioStream, int percentage) {
+	public GoThroughVideo (RandomAccessFile imageStream, int percentage) {
 		this.imageStream = imageStream;
 		this.percentage = percentage;
-		this.audioStream = audioStream;
 		this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
 	}
 	
+	public GoThroughVideo (RandomAccessFile imageStream, FileInputStream audioStream, int percentage) {
+        this.imageStream = imageStream;
+        this.percentage = percentage;
+        this.audioStream = audioStream;
+        this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
+}
+	
 	public void filter () {
-		
 		AnalyzedFrame currentFrame;
 		try {
 			FileOutputStream out = null;
@@ -49,7 +53,7 @@ public class GoThroughVideo{
 			for (int numRead = 0; numRead != -1;) {
 				int offset = 0;
 				int bufferIndex = 0;
-				while (offset < (this.singleImageSize*this.IMAGEBUFFERSIZE) && (numRead=this.imageStream.read(frameBuffer, offset,frameBuffer.length-offset)) > 0) {
+				while (offset < (this.singleImageSize*this.IMAGEBUFFERSIZE) && (numRead=this.imageStream.read(frameBuffer)) > 0) {
 					offset += numRead;
 					innerFrameIndex = 0;
 					for(byte b : frameBuffer)
@@ -71,9 +75,9 @@ public class GoThroughVideo{
 						{
 							if(  frameIndex + image - LastShotStartIndex > 5)
 							{
-								Shots.add(new Shot(LastShotStartIndex, frameIndex + image));
+								Shots.add(new Shot(LastShotStartIndex, frameIndex));
 							}
-							LastShotStartIndex = frameIndex + image + 1;
+							LastShotStartIndex = frameIndex + 1;
 						}
 						AnalyzedFrames.add(currentFrame);
 					}
@@ -81,6 +85,7 @@ public class GoThroughVideo{
 			}
 			
 			sourceLength = frameIndex * (1.0f/24.0f);
+			targetSummaryLength = (percentage/100.0f) * sourceLength;
 			
 			//Cull shots with less than five frames (assuming these are false positives/parts of gradual transitions)
 			Iterator<Shot> iter = Shots.iterator();
@@ -110,26 +115,31 @@ public class GoThroughVideo{
 				currentSummaryLength += currentShot.ShotTime();
 				//Add shot to our final summary
 				FinalSummary.add(currentShot);
-			}while( sourceLength < currentSummaryLength );
+			}while( targetSummaryLength > currentSummaryLength );
 			
 
 			//buffer filled, now select every other image, no weighting algorithm yet
-			File outvideo = new File("outvideo.rgb");
+			File outvideo = new File("D:/CSCI576/outvideo.rgb");
 			out = new FileOutputStream(outvideo, true);	//append to this output file
-			for (int shotIndex = 0; shotIndex < FinalSummary.size(); shotIndex++) 
+			
+			Shot toOutput;
+			while( FinalSummary.size() > 0 )
 			{
-				if(shotIndex != FinalSummary.size() - 1)
+				toOutput = FinalSummary.remove();
+				if(FinalSummary.size() > 0)
 				{
-					FinalSummary.elementAt(shotIndex).OutputShot(imageStream, out);
+					toOutput.OutputShot(imageStream, out);
 				}
 				else // last element
 				{
-					FinalSummary.elementAt(shotIndex).OutputShot(imageStream, out, currentSummaryLength - sourceLength);
+					toOutput.OutputShot(imageStream, out, currentSummaryLength - targetSummaryLength);
 				}
+				//out.flush();
 				//out.write(this.bytesBuffer, this.singleImageSize*i, this.singleImageSize);
 			}
 			out.close();
 			
+			/*
 			WaveUtility wu = new WaveUtility(audioStream, this.bufferSeconds);
 			double soundLevel;
 			int end = 0;
@@ -139,11 +149,11 @@ public class GoThroughVideo{
 				end = wu.readInBuffer();
 				soundLevel = wu.computeSoundLevel();
 				System.out.println(counter + " soundLevel of the period is: " + soundLevel);
-			} while ( end == 0 );
-			
+			} while ( end == 0 );*/	
 		} catch (IOException e) {
 			e.printStackTrace();
-		}		
+		}	
+		
 	}
 	
 }

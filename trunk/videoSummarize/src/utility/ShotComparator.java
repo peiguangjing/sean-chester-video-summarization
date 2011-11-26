@@ -8,11 +8,11 @@ public class ShotComparator implements Comparator<Shot>{
 	@Override
     public int compare(Shot lhs, Shot rhs)
     {
-        if (lhs.GetShotImportance() < rhs.GetShotImportance())
+        if (lhs.GetShotImportance() > rhs.GetShotImportance())
         {
             return -1;
         }
-        else if (lhs.GetShotImportance() > rhs.GetShotImportance())
+        else if (lhs.GetShotImportance() < rhs.GetShotImportance())
         {
             return 1;
         }

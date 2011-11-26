@@ -11,21 +11,21 @@ import utility.Index;
 import AnalyzedFrame.AnalyzedFrame;
 
 public class Shot {
-	private final int MinShotLength = 5*24;
+	private final int MinShotLength = 2*24;
 	//Larger values correspond to less weight in the final overall score.
 
 	//Motion weight is a weight on the total motion vector distances for a frame.  The idea here is that
 	//frames with more motion are more important and shots with more motion are more important.
-	private final int MotionWeight = 100;
+	private final int MotionWeight = 10;
 	//Color weight is a weight on the sum of the color components of the average color for a frame.  The idea
 	//here is that shots that are more saturated/brighter (thus having higher RGB values) are more important.
-	private final int ColorWeight = 1000; 
+	private final int ColorWeight = 5000; 
 	
 	private int ShotIndex = 0;
 	private float ShotImportance = 0.0f;
 	
-	private int FrameLowerIndex = 0;
-	private int FrameUpperIndex = 0;
+	private long FrameLowerIndex = 0;
+	private long FrameUpperIndex = 0;
 	
 	public Shot()
 	{
@@ -41,6 +41,12 @@ public class Shot {
 	public Boolean Cull()
 	{
 		return (FrameUpperIndex-FrameLowerIndex) <= MinShotLength;
+	}
+	
+	public long StartFrame()
+	{
+		return FrameLowerIndex;
+	
 	}
 	
 	public float GetShotImportance()
@@ -64,7 +70,7 @@ public class Shot {
 		//Apply weights given the information stored in each AnalyzedFrame in the sequence from FrameLowerIndex to FrameUpperIndex
 		float motionContribution = 0.0f;
 		float colorContribution = 0.0f;
-		for(int index = FrameLowerIndex; index <= FrameUpperIndex; index++)
+		for(int index = (int)FrameLowerIndex; index <= FrameUpperIndex; index++)
 		{
 			motionContribution += frames.elementAt(index).TotalMotion();
 			colorContribution += frames.elementAt(index).TotalColor();
@@ -76,10 +82,17 @@ public class Shot {
 	
 	public void OutputShot(RandomAccessFile source, FileOutputStream output)
 	{
-		byte[] buffer = new byte[(FrameUpperIndex - FrameLowerIndex + 1)*320*240*3];
+		int framesToPull =(int)( FrameUpperIndex - FrameLowerIndex + 1 );
+		long seekOffset = 0;
+		byte[] buffer = new byte[320*240*3];
 		try {
-			source.read(buffer, Index.FrameIndexToBytes(FrameLowerIndex), buffer.length);
-			output.write(buffer);
+			seekOffset = Index.FrameIndexToBytes(FrameLowerIndex);
+			source.seek(seekOffset);
+			for(int i = 0; i < framesToPull; i++)
+			{
+				source.read(buffer);
+				output.write(buffer);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -89,10 +102,14 @@ public class Shot {
 	public void OutputShot(RandomAccessFile source, FileOutputStream output, float partialTime)
 	{
 		int framesToPull = (int)((partialTime / ShotTime()) * (FrameUpperIndex - FrameLowerIndex + 1));
-		byte[] buffer = new byte[framesToPull*320*240*3];
+		byte[] buffer = new byte[320*240*3];
 		try {
-			source.read(buffer, Index.FrameIndexToBytes(FrameLowerIndex), buffer.length);
-			output.write(buffer);
+			source.seek(Index.FrameIndexToBytes(FrameLowerIndex));
+			for(int i = 0; i < framesToPull; i++)
+			{
+				source.read(buffer);
+				output.write(buffer);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
