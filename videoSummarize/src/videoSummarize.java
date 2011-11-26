@@ -1,9 +1,9 @@
 import java.io.*;
 import java.lang.*;
 
-import image.GoThroughImage;
-import sound.playWave.PlaySound;
-import sound.playWave.PlayWaveException;
+import videoFiltering.GoThroughVideo;
+
+
 
 /**
  * trigger analyzing 
@@ -24,7 +24,7 @@ public class videoSummarize{
 			int percentage = Integer.parseInt(args[2]);
 			
 			if (percentage <= 0 || percentage >100){
-				System.err.println("percentage parameter must not <=0 and >100");
+				System.err.println("percentage parameter must not <=0 or >100");
 				return;
 			}
 
@@ -38,31 +38,19 @@ public class videoSummarize{
 			    return;
 			}
 			
-			GoThroughImage gti = new GoThroughImage(videoinputStream, percentage);
-			gti.filter();
+			FileInputStream audioinputStream;
+			try {
+				audioinputStream = new FileInputStream(audiofilename);
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			    return;
+			}
+			
+			
+			GoThroughVideo gtv = new GoThroughVideo(videoinputStream, audioinputStream, percentage);
+			gtv.filter();
 			//videoinputStream.close(); not so important for this program
 			
 			
-			/*
-			// opens the inputStream
-			FileInputStream audioinputStream;
-			try {
-			    audioinputStream = new FileInputStream(audiofilename);
-			} catch (FileNotFoundException e) {
-			    e.printStackTrace();
-			    return;
-			}
-
-			// initializes the playSound Object
-			PlaySound playSound = new PlaySound(audioinputStream);
-
-			// plays the sound
-			try {
-			    playSound.play();
-			} catch (PlayWaveException e) {
-			    e.printStackTrace();
-			    return;
-			}
-			*/
 	 }
 }
