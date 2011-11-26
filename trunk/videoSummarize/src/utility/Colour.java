@@ -24,6 +24,11 @@ public class Colour {
 		B += b;
 	}
 	
+	public void Add(Colour other)
+	{
+		Add(other.R,other.G,other.B);
+	}
+	
 	static public Colour Add(Colour colourOne, Colour colourTwo)
 	{
 		return new Colour(colourOne.R + colourTwo.R, colourOne.G + colourTwo.G, colourOne.B + colourTwo.B);
