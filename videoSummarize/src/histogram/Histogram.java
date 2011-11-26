@@ -3,7 +3,7 @@ package histogram;
 import utility.Colour;
 
 public class Histogram {
-	private final int Threshold = 6450;
+	private final int Threshold = 2000;//6450;
 	private int[] Bins;
 	private int BinCount;
 	
