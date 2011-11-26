@@ -5,13 +5,16 @@ using System.Text;
 using System.Windows.Media.Imaging;
 using System.IO;
 using System.Timers;
+using System.Windows.Threading;
 using System.Threading.Tasks;
 using System.Media;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace VideoPlayer
 {
-    public class Video: INotifyPropertyChanged
+    public class VideoViewModel: INotifyPropertyChanged
     {
         enum PlayerState
         {
@@ -38,7 +41,7 @@ namespace VideoPlayer
             }
         }
 
-        private static System.Windows.Threading.DispatcherTimer VideoTimer;
+        private static Timer VideoTimer;
         private byte[] fileImageBufferOne;
         private byte[] fileImageBufferTwo;
         private BitmapSource _frame;
@@ -70,19 +73,22 @@ namespace VideoPlayer
         private uint SecondsToBuffer { get; set; }
         private PlayerState State { get; set; }
         
-        public Video()
+        public VideoViewModel()
         {
             VideoHeight = 240;
             VideoWidth = 320;
-            SecondsToBuffer = 6;
+            SecondsToBuffer = 30;
             FrameRate = 24;
             AudioOpened = false;
             VideoOpened = false;
             OverallFrameCount = 0;
-            VideoTimer = new System.Windows.Threading.DispatcherTimer();
-            VideoTimer.Interval = new TimeSpan(0, 0, 0, 0,(int) ( 1000 / FrameRate));
-            VideoTimer.IsEnabled = false;
-            VideoTimer.Tick += OnVideoTimerTick;
+
+            VideoTimer = new Timer(1000.0f / (float)FrameRate);
+            //VideoTimer.Interval = new TimeSpan(0, 0, 0, 0,(int) ( 1000.0f / (float)FrameRate));
+            VideoTimer.AutoReset = true;
+            //VideoTimer.IsEnabled = false;
+            //VideoTimer.Elapsed += OnVideoTimerTick;
+            //VideoTimer.Tick += OnVideoTimerTick;
             State = PlayerState.Unstarted;
             CurrentBuffer = 0;
 
@@ -91,8 +97,6 @@ namespace VideoPlayer
             fileImageBufferOne = new byte[VideoHeight * VideoWidth * 3 * FrameRate * SecondsToBuffer];
             fileImageBufferTwo = new byte[VideoHeight * VideoWidth * 3 * FrameRate * SecondsToBuffer];
 
-
-            
             /// Binding Test
             //byte[] frameBuffer = new byte[VideoHeight * VideoWidth];
 
@@ -112,6 +116,11 @@ namespace VideoPlayer
             //                            frameBuffer,
             //                            (int)VideoWidth);
 
+        }
+
+        public bool IsPlaying()
+        {
+            return State == PlayerState.Playing;
         }
 
         private void OnVideoTimerTick(object source, EventArgs e)
@@ -153,13 +162,57 @@ namespace VideoPlayer
             }
         }
 
-        public void Play()
+        public BitmapSource OnVideoTimerTick()
+        {
+            if (State == PlayerState.Playing)
+            {
+                if (OverallFrameCount % (SecondsToBuffer * FrameRate) != 0 || OverallFrameCount == 0)
+                {
+                    //Display image
+                    if (CurrentBuffer == 0)
+                    {
+                        GenerateFrame(fileImageBufferOne);
+                    }
+                    else
+                    {
+                        GenerateFrame(fileImageBufferTwo);
+                    }
+                }
+                else
+                {
+                    if (CurrentBuffer == 0)
+                    {
+                        Task.Factory.StartNew(() => { LoadBuffer(fileImageBufferOne); });
+                        GenerateFrame(fileImageBufferTwo);
+                        CurrentBuffer = (byte)1;
+                    }
+                    else
+                    {
+                        Task.Factory.StartNew(() => { LoadBuffer(fileImageBufferTwo); });
+                        GenerateFrame(fileImageBufferOne);
+                        CurrentBuffer = (byte)0;
+                    }
+                    //Switch buffer
+                    //Display image
+                    //Fill other buffer async
+                }
+
+                OverallFrameCount++;
+                return Frame;
+            }
+            return null;
+        }
+
+        public void Play(bool StartTimer = false)
         {
             if (/*AudioOpened && */ VideoOpened)
             {
-                VideoTimer.Start();
+                if (StartTimer)
+                {
+                    VideoTimer.Start();
+                }
                 State = PlayerState.Playing;
-                AudioPlayer.Play();
+                //AudioPlayer.Play();
             }
         }
 
@@ -251,7 +304,6 @@ namespace VideoPlayer
                     bufferToFill[3 * PixelIndex + (uint)Color.BLUE + (stride * FrameIndex)] = bufferSource[PixelIndex + ((uint)Color.BLUE * size) + (stride * FrameIndex)];
                 }
             }
-
         }
 
         private void GenerateFrame(byte [] sourceBuffer)
@@ -275,7 +327,6 @@ namespace VideoPlayer
                                         null,
                                         frameBuffer,
                                         stride);
-
         }
 
         private void LoadBuffer( byte[] buffer )

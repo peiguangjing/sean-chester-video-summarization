@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.ComponentModel;
+using System.Timers;
 
 namespace VideoPlayer
 {
@@ -21,7 +22,8 @@ namespace VideoPlayer
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public Video video { get; set; }
+        private Timer timer = new Timer();
+        //public VideoViewModel Video { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -36,7 +38,9 @@ namespace VideoPlayer
         public MainWindow()
         {
             InitializeComponent();
-            video = new Video();
+            //timer.Elapsed += (obj, args) => { Dispatcher.Invoke((Action)delegate() { Video.OnVideoTimerTick(); },System.Windows.Threading.DispatcherPriority.Send); };
+            //timer.Interval = 1000.0f / 24.0f;
+            //Video = new VideoViewModel();
         }
 
         private void FileOpen_Click(object sender, RoutedEventArgs e)
@@ -64,6 +68,7 @@ namespace VideoPlayer
         private void Play_Click(object sender, RoutedEventArgs e)
         {
             video.Play();
+            //timer.Start();
         }
     }
 }

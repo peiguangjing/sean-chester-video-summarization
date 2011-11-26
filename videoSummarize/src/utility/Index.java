@@ -24,4 +24,8 @@ public class Index {
 		return offset + x + (y * FrameWidth);	
 	}
 
+	static public int FrameIndexToBytes(int frameIndex)
+	{
+		return FrameWidth*FrameHeight*3*frameIndex;
+	}
 }

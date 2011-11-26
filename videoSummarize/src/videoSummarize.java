@@ -28,11 +28,11 @@ public class videoSummarize{
 				return;
 			}
 
-			FileInputStream videoinputStream;
+			RandomAccessFile videoinputStream;
 			File videofile;
 			try {
 				videofile = new File(videofilename);
-				videoinputStream = new FileInputStream(videofile);
+				videoinputStream = new RandomAccessFile(videofile, "r");
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			    return;

@@ -1,5 +1,7 @@
 package AnalyzedFrame;
 
+import histogram.Histogram;
+
 import java.lang.Math;
 
 import utility.ColorComponent;
@@ -20,6 +22,7 @@ public class AnalyzedFrame {
 	private Vector2 AverageMotionDirection = new Vector2();
 	private Colour AverageColor = new Colour();
 	private int SoundIntensity = -1;
+	private Histogram GrayScaleHistogram = new Histogram(64);
 	
 	public AnalyzedFrame()
 	{
@@ -27,7 +30,7 @@ public class AnalyzedFrame {
 	}
 	
 	
-	public void AnalyzeFrame(byte[] frame)
+	public void AnalyzeFrame(short[] frame)
 	{
 		for(int blockX = 0; blockX < (FrameWidth / MacroBlockSize); blockX += MacroBlockSize)
 		{
@@ -39,7 +42,7 @@ public class AnalyzedFrame {
 		}
 	}
 	
-	public void AnalyzeMotionContent(byte[] frame, int blockX, int blockY)
+	public void AnalyzeMotionContent(short[] frame, int blockX, int blockY)
 	{
 		int beginX = blockX * MacroBlockSize - MacroBlockSearchArea;
 		int beginY = blockY * MacroBlockSize - MacroBlockSearchArea;
@@ -58,9 +61,9 @@ public class AnalyzedFrame {
 			for(int searchTargetY = beginY >= 0 ? beginY : 0; searchTargetY < beginY + interationLimit && searchTargetY < FrameHeight; searchTargetY++)
 			{
 				currentBlockDifferenceSum = 0;
-				for(int pixelX = beginX + searchTargetX; pixelX < beginX + MacroBlockSize && pixelX < FrameWidth; pixelX++)
+				for(int pixelX = (beginX + searchTargetX) >= 0 ? beginX + searchTargetX : 0; pixelX < beginX + MacroBlockSize && pixelX < FrameWidth; pixelX++)
 				{
-					for(int pixelY = beginY + searchTargetY; pixelY < beginY + MacroBlockSize && pixelY < FrameHeight; pixelY++)
+					for(int pixelY = (beginY + searchTargetY) >= 0 ? beginY + searchTargetY : 0; pixelY < beginY + MacroBlockSize && pixelY < FrameHeight; pixelY++)
 					{
 						targetIndex = Index.FromXYtoIndex(pixelX, pixelY);
 						originalIndex = Index.FromXYtoIndex(beginX+1, beginY+1);
@@ -84,18 +87,42 @@ public class AnalyzedFrame {
 		AverageMotionDirection = Vector2.Add(AverageMotionDirection, blockMotionVector);
 	}
 	
-	public void AnalyzeColorValue(byte[] frame, int blockX, int blockY)
+	public void AnalyzeColorValue(short[] frame, int blockX, int blockY)
 	{
 		int beginX = blockX * MacroBlockSize;
 		int beginY = blockY * MacroBlockSize;
 		int index;
+		Colour color = new Colour();
 		for(int pixelX = beginX; pixelX < beginX + MacroBlockSize; pixelX++)
 		{
 			for(int pixelY = beginY; pixelY < beginY + MacroBlockSize; pixelY++)
 			{
+				
 				index = Index.FromXYtoIndex(pixelX, pixelY);
-				 AverageColor.Add(frame[index],frame[index+ColorComponent.GREEN.Offset()],frame[index+ColorComponent.BLUE.Offset()]);
+				color.R = frame[index]; color.G = frame[index+ColorComponent.GREEN.Offset()]; color.B = frame[index+ColorComponent.BLUE.Offset()];
+				AverageColor.Add(color);
+				GrayScaleHistogram.ProcessPixel(color);
 			}
 		}
+	}
+	
+	public Histogram GetHistogram()
+	{
+		return GrayScaleHistogram;
+	}
+	
+	public Boolean ShotBoundaryDetection(AnalyzedFrame other)
+	{
+		return GrayScaleHistogram.ShotBoundary(other.GetHistogram());
+	}
+	
+	public float TotalMotion()
+	{
+		return TotalMotion;
+	}
+	
+	public float TotalColor()
+	{
+		return AverageColor.R + AverageColor.G + AverageColor.B;
 	}
 }
