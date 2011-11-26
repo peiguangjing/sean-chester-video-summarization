@@ -5,8 +5,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RGBVideoConverter", "FinalP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoPlayer", "VideoPlayer\VideoPlayer.csproj", "{0B707CB8-4C26-4177-8BE0-B8E8991D152A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoInterface", "VideoInterface\VideoInterface.vcxproj", "{82A96B0A-88D3-4140-B764-1526569B3505}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -37,16 +35,6 @@ Global
 		{0B707CB8-4C26-4177-8BE0-B8E8991D152A}.Release|Win32.ActiveCfg = Release|x86
 		{0B707CB8-4C26-4177-8BE0-B8E8991D152A}.Release|x86.ActiveCfg = Release|x86
 		{0B707CB8-4C26-4177-8BE0-B8E8991D152A}.Release|x86.Build.0 = Release|x86
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Debug|Win32.ActiveCfg = Debug|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Debug|Win32.Build.0 = Debug|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Debug|x86.ActiveCfg = Debug|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Release|Win32.ActiveCfg = Release|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Release|Win32.Build.0 = Release|Win32
-		{82A96B0A-88D3-4140-B764-1526569B3505}.Release|x86.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

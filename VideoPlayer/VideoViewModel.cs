@@ -162,7 +162,7 @@ namespace VideoPlayer
             }
         }
 
-        public BitmapSource OnVideoTimerTick()
+        public BitmapSource OnVideoTimerTick(WriteableBitmap buffer)
         {
             if (State == PlayerState.Playing)
             {
@@ -171,11 +171,11 @@ namespace VideoPlayer
                     //Display image
                     if (CurrentBuffer == 0)
                     {
-                        GenerateFrame(fileImageBufferOne);
+                        GenerateFrame(fileImageBufferOne, buffer);
                     }
                     else
                     {
-                        GenerateFrame(fileImageBufferTwo);
+                        GenerateFrame(fileImageBufferTwo, buffer);
                     }
                 }
                 else
@@ -183,13 +183,13 @@ namespace VideoPlayer
                     if (CurrentBuffer == 0)
                     {
                         Task.Factory.StartNew(() => { LoadBuffer(fileImageBufferOne); });
-                        GenerateFrame(fileImageBufferTwo);
+                        GenerateFrame(fileImageBufferTwo, buffer);
                         CurrentBuffer = (byte)1;
                     }
                     else
                     {
                         Task.Factory.StartNew(() => { LoadBuffer(fileImageBufferTwo); });
-                        GenerateFrame(fileImageBufferOne);
+                        GenerateFrame(fileImageBufferOne, buffer);
                         CurrentBuffer = (byte)0;
                     }
                     //Switch buffer
@@ -212,7 +212,7 @@ namespace VideoPlayer
                     VideoTimer.Start();
                 }
                 State = PlayerState.Playing;
-                //AudioPlayer.Play();
+                AudioPlayer.Play();
             }
         }
 
@@ -304,6 +304,22 @@ namespace VideoPlayer
                     bufferToFill[3 * PixelIndex + (uint)Color.BLUE + (stride * FrameIndex)] = bufferSource[PixelIndex + ((uint)Color.BLUE * size) + (stride * FrameIndex)];
                 }
             }
+        }
+
+        private void GenerateFrame(byte[] sourceBuffer, WriteableBitmap bitmap)
+        {
+            byte[] frameBuffer = new byte[VideoHeight * VideoWidth * 3];
+            uint bufferFrame = OverallFrameCount % (SecondsToBuffer * FrameRate);
+            int stride = (((int)VideoWidth * 24 + 31) & ~31) / 8;
+
+            for (uint sourceStart = bufferFrame * VideoHeight * VideoWidth * 3, imageBufferStart = 0;
+                imageBufferStart < VideoHeight * VideoWidth * 3;
+                ++sourceStart, ++imageBufferStart)
+            {
+                frameBuffer[imageBufferStart] = sourceBuffer[sourceStart];
+            }
+
+            bitmap.WritePixels(new System.Windows.Int32Rect(0, 0, (int)VideoWidth, (int)VideoHeight), frameBuffer, stride, 0);
         }
 
         private void GenerateFrame(byte [] sourceBuffer)
