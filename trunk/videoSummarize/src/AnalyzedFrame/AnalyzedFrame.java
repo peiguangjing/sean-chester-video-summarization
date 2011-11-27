@@ -20,7 +20,8 @@ public class AnalyzedFrame {
 	private int SceneIndex = -1;
 	private float TotalMotion = -1;
 	private Vector2 AverageMotionDirection = new Vector2();
-	private Colour AverageColor = new Colour();
+	private Colour AverageColor = new Colour(); // Corresponds to low frequency
+	private Colour ColorDifferenceSum = new Colour(); // Corresponds to high frequency
 	private int SoundIntensity = -1;
 	private Histogram GrayScaleHistogram = new Histogram(64);
 	
@@ -40,6 +41,7 @@ public class AnalyzedFrame {
 				AnalyzeColorValue(frame, blockX, blockY);
 			}
 		}
+		AverageColor.Divide(FrameHeight*FrameWidth);
 	}
 	
 	public void AnalyzeMotionContent(short[] frame, int blockX, int blockY)
@@ -93,15 +95,22 @@ public class AnalyzedFrame {
 		int beginY = blockY * MacroBlockSize;
 		int index;
 		Colour color = new Colour();
+		Colour lastColor = new Colour();
 		for(int pixelX = beginX; pixelX < beginX + MacroBlockSize; pixelX++)
 		{
 			for(int pixelY = beginY; pixelY < beginY + MacroBlockSize; pixelY++)
 			{
-				
 				index = Index.FromXYtoIndex(pixelX, pixelY);
 				color.R = frame[index]; color.G = frame[index+ColorComponent.GREEN.Offset()]; color.B = frame[index+ColorComponent.BLUE.Offset()];
 				AverageColor.Add(color);
 				GrayScaleHistogram.ProcessPixel(color);
+				if( pixelY != beginY)
+				{
+					lastColor.Subtract(color);
+					lastColor.Abs();
+					ColorDifferenceSum.Add(lastColor);
+				}
+				lastColor.Set(color);
 			}
 		}
 	}
@@ -124,5 +133,10 @@ public class AnalyzedFrame {
 	public float TotalColor()
 	{
 		return AverageColor.R + AverageColor.G + AverageColor.B;
+	}
+	
+	public float TotalColorDifference()
+	{
+		return ColorDifferenceSum.R + ColorDifferenceSum.G + ColorDifferenceSum.B;
 	}
 }
