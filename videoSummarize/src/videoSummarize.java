@@ -39,7 +39,11 @@ public class videoSummarize{
 			}
 			
 			FileInputStream audioinputStream;
+			File audioFile;
+			RandomAccessFile audioRAF;
 			try {
+				audioFile = new File(audiofilename);
+				audioRAF = new RandomAccessFile(audioFile, "r");
 				audioinputStream = new FileInputStream(audiofilename);
 			} catch (FileNotFoundException e1) {
 				e1.printStackTrace();
@@ -47,7 +51,7 @@ public class videoSummarize{
 			}
 			
 			
-			GoThroughVideo gtv = new GoThroughVideo(videoinputStream, audioinputStream, percentage);
+			GoThroughVideo gtv = new GoThroughVideo(videoinputStream, audioinputStream, audioRAF, percentage);
 			gtv.filter();
 			//videoinputStream.close(); not so important for this program
 			
