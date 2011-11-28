@@ -12,6 +12,7 @@ import AnalyzedFrame.AnalyzedFrame;
 
 public class GoThroughVideo{
 	private FileInputStream audioStream;
+	private RandomAccessFile waveRAF;
 	private int bufferSeconds = 5;
 	private RandomAccessFile imageStream;
 	private final int width = 320;
@@ -34,14 +35,16 @@ public class GoThroughVideo{
 		this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
 	}
 	
-	public GoThroughVideo (RandomAccessFile imageStream, FileInputStream audioStream, int percentage) {
+	public GoThroughVideo (RandomAccessFile imageStream, FileInputStream audioStream, RandomAccessFile waveRAF, int percentage) {
         this.imageStream = imageStream;
         this.percentage = percentage;
         this.audioStream = audioStream;
+        this.waveRAF = waveRAF;
         this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
-}
+	}
 	
 	public void filter () {
+
 		AnalyzedFrame currentFrame;
 		try {
 			FileOutputStream out = null;
@@ -140,6 +143,7 @@ public class GoThroughVideo{
 			out.close();
 			
 			/*
+			//test
 			WaveUtility wu = new WaveUtility(audioStream, this.bufferSeconds);
 			double soundLevel;
 			int end = 0;
@@ -149,7 +153,19 @@ public class GoThroughVideo{
 				end = wu.readInBuffer();
 				soundLevel = wu.computeSoundLevel();
 				System.out.println(counter + " soundLevel of the period is: " + soundLevel);
-			} while ( end == 0 );*/	
+			} while ( end == 0 );
+			*/
+			/*
+		    double soundLevel = 0;
+			WaveUtility wur = new WaveUtility(audioStream, waveRAF);
+			
+			for (int i = 0; i < 100; i++){
+				soundLevel = wur.computeSoundLevelPeriod(i * this.bufferSeconds, (i + 1) * this.bufferSeconds);
+				System.out.println(i + " soundLevel of the interval is: " + soundLevel);
+			}
+			*/
+		
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
