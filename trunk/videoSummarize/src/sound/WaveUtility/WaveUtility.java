@@ -18,6 +18,7 @@ public class WaveUtility {
     private AudioFormat audioFormat;
     private int bytesPerFrame;
     private float frameRate;
+    ByteArrayOutputStream baosAudio = new ByteArrayOutputStream();
     
     public WaveUtility(InputStream waveStream, int bufferSeconds) {
     	this.waveStream = waveStream;
@@ -59,6 +60,10 @@ public class WaveUtility {
     	}
     	
     	this.audioFormat = this.audioInputStream.getFormat();
+    	//dump to test
+    	System.out.println("Wave Encoding: " + this.audioFormat.getEncoding().toString());
+    	System.out.println("Wave Sample Rate: " + this.audioFormat.getSampleRate());
+    	System.out.println("Wave Channels: " + this.audioFormat.getChannels());
     	
     	this.bytesPerFrame = this.audioFormat.getFrameSize();
         if (this.bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
@@ -76,6 +81,10 @@ public class WaveUtility {
 
     	this.numBytes = (int) (Math.ceil(this.bytesPerFrame * this.frameRate * this.bufferSeconds));
     	this.audioBytes = new byte[this.numBytes];
+    }
+    
+    public byte[] getBuffer() {
+    	return this.audioBytes;
     }
 
     public int readInBuffer () {
@@ -152,4 +161,60 @@ public class WaveUtility {
     	
     	return soundLevel;
     }
+    
+    public void appendToOutputBuffer( byte[] bytes ) {
+    	try {
+    		baosAudio.write(bytes);
+    	} catch (IOException e){
+    		e.printStackTrace();
+    	}
+    }
+    
+    public void saveWavFile (String filepath) {
+   	  	
+    	try {
+    		OutputStream os = new FileOutputStream(filepath); 
+    		DataOutputStream outFile = new DataOutputStream(os);
+    		byte[] myData = baosAudio.toByteArray();
+    		int myDataSize = myData.length;
+    		//wave header
+    		outFile.writeBytes("RIFF");
+    		outFile.write(intToByteArray((int) (myDataSize + 44 - 8)), 0, 4);     // 04 - how big is the rest of the file
+            outFile.writeBytes("WAVE");                
+            outFile.writeBytes("fmt ");              
+            outFile.write(intToByteArray((int) 16), 0, 4); // 16 - size of this chunk
+            outFile.write(shortToByteArray((short) 1), 0, 2);        // 20 - what is the audio format? 1 for PCM = Pulse Code Modulation
+            outFile.write(shortToByteArray((short) 1), 0, 2);  // 22 - mono or stereo?
+            outFile.write(intToByteArray((int) audioFormat.getSampleRate()), 0, 4);        // 24 - samples per second (numbers per second)
+            outFile.write(intToByteArray((int) (bytesPerFrame * frameRate)), 0, 4);      // 28 - bytes per second
+            outFile.write(shortToByteArray((short) 2), 0, 2);    // 32 - # of bytes in one sample, for all channels
+            outFile.write(shortToByteArray((short) 16), 0, 2); // 34 - how many bits in a sample(number)?  usually 16 or 24
+            outFile.writeBytes("data");                 // 36 - data
+            outFile.write(intToByteArray(myDataSize), 0, 4);      // 40 - how big is this data chunk, data size or +8?
+            outFile.write(myData);                      // 44 - the actual data itself - just a long array of numbers
+            
+            outFile.close();
+            os.close();
+    		
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+  	
+    	
+    }
+    
+    //little endian in wave
+    public static byte[] shortToByteArray(short data) {
+        return new byte[]{(byte) (data & 0xff), (byte) ((data >>> 8) & 0xff)};
+    }
+    
+    public static byte[] intToByteArray(int i) {
+    	byte[] b= new byte[4];
+    	b[0] = (byte)(i & 0x000000FF);
+    	b[1] = (byte)((i>>8) & 0x000000FF);
+    	b[2] = (byte)((i>>16) & 0x000000FF);
+    	b[3] = (byte)((i>>24) & 0x000000FF);
+    	return b;
+    }
+    
 }

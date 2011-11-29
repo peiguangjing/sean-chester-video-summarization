@@ -44,7 +44,7 @@ public class GoThroughVideo{
 	}
 	
 	public void filter () {
-
+/*
 		AnalyzedFrame currentFrame;
 		try {
 			FileOutputStream out = null;
@@ -141,7 +141,7 @@ public class GoThroughVideo{
 				//out.write(this.bytesBuffer, this.singleImageSize*i, this.singleImageSize);
 			}
 			out.close();
-			
+*/			
 			/*
 			//test
 			WaveUtility wu = new WaveUtility(audioStream, this.bufferSeconds);
@@ -155,21 +155,24 @@ public class GoThroughVideo{
 				System.out.println(counter + " soundLevel of the period is: " + soundLevel);
 			} while ( end == 0 );
 			*/
-			/*
+			
 		    double soundLevel = 0;
 			WaveUtility wur = new WaveUtility(audioStream, waveRAF);
 			
-			for (int i = 0; i < 100; i++){
-				soundLevel = wur.computeSoundLevelPeriod(i * this.bufferSeconds, (i + 1) * this.bufferSeconds);
-				System.out.println(i + " soundLevel of the interval is: " + soundLevel);
-			}
-			*/
-		
+			soundLevel = wur.computeSoundLevelPeriod(17, 60);
+			System.out.println(" soundLevel of the interval is: " + soundLevel);
+			wur.appendToOutputBuffer(wur.getBuffer());
+			wur.saveWavFile("test.wav");
+	
+			
+			
+			
+/*		
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
-		
+*/		
 	}
 	
 }
