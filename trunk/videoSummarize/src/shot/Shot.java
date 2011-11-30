@@ -88,7 +88,7 @@ public class Shot {
 		colorDifferenceContribution /= ColorDifferenceWeight;
 		avgSoundLevel = wur.computeSoundLevelPeriod((double)FrameLowerIndex/framesPerSecond, (double)FrameUpperIndex/framesPerSecond);
 		
-		//how much should the sound weigh?
+		//how much should the sound weigh? the number ranges from 100 to 5600 for the terminator one
 		
 		ShotImportance =(float) (motionContribution + colorContribution + colorDifferenceContribution);
 	}
