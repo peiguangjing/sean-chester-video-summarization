@@ -10,7 +10,7 @@ public class WaveUtility {
 
     private InputStream waveStream;
     private RandomAccessFile waveRAF;
-    private int bufferSeconds = 5; //buffer how many seconds of sound
+    private double bufferSeconds = 5; //buffer how many seconds of sound
     private int numBytes;
     private byte[] audioBytes;
     private int offset;
@@ -76,7 +76,7 @@ public class WaveUtility {
     	
     }
     
-    public void createBuffer (int bufferSeconds) {
+    public void createBuffer (double bufferSeconds) {
     	this.bufferSeconds = bufferSeconds;    	
 
     	this.numBytes = (int) (Math.ceil(this.bytesPerFrame * this.frameRate * this.bufferSeconds));
@@ -130,6 +130,12 @@ public class WaveUtility {
     	return 0;
     }
     
+    public void readInBufferRandomPeriod (double fromSecond, double toSecond) {
+    	double duration = toSecond - fromSecond;
+    	createBuffer(duration);
+    	readInBufferRandom((long) (bytesPerFrame * frameRate * fromSecond));
+    }
+    
     public double computeSoundLevel() {
     	double soundLevel = 0;
     	short shortAudio[] = new short[this.offset / 2];
@@ -146,7 +152,7 @@ public class WaveUtility {
     	return soundLevel;
     }
     
-    public double computeSoundLevelPeriod(int fromSecond, int toSecond) {
+    public double computeSoundLevelPeriod(double fromSecond, double toSecond) {
     	double soundLevel = 0;
     	long offset = 0;
     	
