@@ -10,6 +10,8 @@ import utility.Index;
 
 import AnalyzedFrame.AnalyzedFrame;
 
+import sound.WaveUtility.WaveUtility;
+
 public class Shot {
 	private final int MinShotLength = 2*24;
 	//Larger values correspond to less weight in the final overall score.
@@ -27,6 +29,8 @@ public class Shot {
 	
 	private long FrameLowerIndex = 0;
 	private long FrameUpperIndex = 0;
+	
+	private final static int framesPerSecond = 24;
 	
 	public Shot()
 	{
@@ -66,12 +70,14 @@ public class Shot {
 		FrameUpperIndex = upperBound;
 	}
 	
-	public void CalculateShotImportance(Vector<AnalyzedFrame> frames)
+	public void CalculateShotImportance(Vector<AnalyzedFrame> frames, WaveUtility wur)
 	{
 		//Apply weights given the information stored in each AnalyzedFrame in the sequence from FrameLowerIndex to FrameUpperIndex
 		double motionContribution = 0.0f;
 		double colorContribution = 0.0f;
 		double colorDifferenceContribution = 0.0f;
+		double avgSoundLevel = 0;
+		
 		for(int index = (int)FrameLowerIndex; index <= FrameUpperIndex; index++)
 		{
 			motionContribution += frames.elementAt(index).TotalMotion();
@@ -80,6 +86,10 @@ public class Shot {
 		motionContribution /= MotionWeight;
 		colorContribution /= AverageColorWeight;
 		colorDifferenceContribution /= ColorDifferenceWeight;
+		avgSoundLevel = wur.computeSoundLevelPeriod((double)FrameLowerIndex/framesPerSecond, (double)FrameUpperIndex/framesPerSecond);
+		
+		//how much should the sound weigh?
+		
 		ShotImportance =(float) (motionContribution + colorContribution + colorDifferenceContribution);
 	}
 	
@@ -104,6 +114,7 @@ public class Shot {
 	
 	public void OutputShot(RandomAccessFile source, FileOutputStream output, float partialTime)
 	{
+		// TODO: maybe (1 - framesToPull) is needed? 
 		int framesToPull = (int)((partialTime / ShotTime()) * (FrameUpperIndex - FrameLowerIndex + 1));
 		byte[] buffer = new byte[320*240*3];
 		try {
@@ -117,5 +128,16 @@ public class Shot {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void OutputSoundToBuffer(WaveUtility wur) {
+		wur.readInBufferRandomPeriod((double)FrameLowerIndex/framesPerSecond, (double)FrameUpperIndex/framesPerSecond);
+		wur.appendToOutputBuffer(wur.getBuffer());
+	}
+	
+	public void OutputSoundToBufferPartial(WaveUtility wur, double overFlowSeconds) {
+		double rate = (1 - overFlowSeconds/ShotTime());
+		wur.readInBufferRandomPeriod((double)FrameLowerIndex/framesPerSecond, (double)(FrameLowerIndex + rate * (FrameUpperIndex - FrameLowerIndex))/framesPerSecond);
+		wur.appendToOutputBuffer(wur.getBuffer());
 	}
 }

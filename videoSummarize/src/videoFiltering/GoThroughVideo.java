@@ -13,7 +13,7 @@ import AnalyzedFrame.AnalyzedFrame;
 public class GoThroughVideo{
 	private FileInputStream audioStream;
 	private RandomAccessFile waveRAF;
-	private int bufferSeconds = 5;
+	private WaveUtility wur;
 	private RandomAccessFile imageStream;
 	private final int width = 320;
 	private final int height = 240;
@@ -41,10 +41,11 @@ public class GoThroughVideo{
         this.audioStream = audioStream;
         this.waveRAF = waveRAF;
         this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
+        this.wur = new WaveUtility(audioStream, waveRAF);
 	}
 	
 	public void filter () {
-/*
+
 		AnalyzedFrame currentFrame;
 		try {
 			FileOutputStream out = null;
@@ -104,7 +105,7 @@ public class GoThroughVideo{
 			//Iterate through shots to calculate importance
 			for(Shot currentShot : Shots)
 			{
-				currentShot.CalculateShotImportance(AnalyzedFrames);
+				currentShot.CalculateShotImportance(AnalyzedFrames, wur);
 				ShotPriorityQueue.add(currentShot);
 			}
 			
@@ -120,9 +121,8 @@ public class GoThroughVideo{
 				FinalSummary.add(currentShot);
 			}while( targetSummaryLength > currentSummaryLength );
 			
-
-			//buffer filled, now select every other image, no weighting algorithm yet
-			File outvideo = new File("D:/CSCI576/outvideo.rgb");
+			
+			File outvideo = new File("outvideo.rgb");
 			out = new FileOutputStream(outvideo, true);	//append to this output file
 			
 			Shot toOutput;
@@ -132,16 +132,19 @@ public class GoThroughVideo{
 				if(FinalSummary.size() > 0)
 				{
 					toOutput.OutputShot(imageStream, out);
+					toOutput.OutputSoundToBuffer(wur);
 				}
 				else // last element
 				{
 					toOutput.OutputShot(imageStream, out, currentSummaryLength - targetSummaryLength);
+					toOutput.OutputSoundToBufferPartial(wur, currentSummaryLength - targetSummaryLength);
 				}
 				//out.flush();
 				//out.write(this.bytesBuffer, this.singleImageSize*i, this.singleImageSize);
 			}
 			out.close();
-*/			
+			wur.saveWavFile("outaudio.wav");
+			
 			/*
 			//test
 			WaveUtility wu = new WaveUtility(audioStream, this.bufferSeconds);
@@ -154,7 +157,7 @@ public class GoThroughVideo{
 				soundLevel = wu.computeSoundLevel();
 				System.out.println(counter + " soundLevel of the period is: " + soundLevel);
 			} while ( end == 0 );
-			*/
+			
 			
 		    double soundLevel = 0;
 			WaveUtility wur = new WaveUtility(audioStream, waveRAF);
@@ -162,17 +165,19 @@ public class GoThroughVideo{
 			soundLevel = wur.computeSoundLevelPeriod(17, 60);
 			System.out.println(" soundLevel of the interval is: " + soundLevel);
 			wur.appendToOutputBuffer(wur.getBuffer());
-			wur.saveWavFile("test.wav");
 	
+			soundLevel = wur.computeSoundLevelPeriod(0, 5);
+			System.out.println(" soundLevel of the interval is: " + soundLevel);
+			wur.appendToOutputBuffer(wur.getBuffer());
+			wur.saveWavFile("test.wav");
 			
-			
-			
-/*		
+			*/
+	
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
-*/		
+		
 	}
 	
 }
