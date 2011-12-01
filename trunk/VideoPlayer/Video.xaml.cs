@@ -44,7 +44,9 @@ namespace VideoPlayer
 
         private static float MillisecondsPerFrame = 1000.0f / 23.97f;
 
-        private Stopwatch _stopwatch = new Stopwatch();
+        private int FrameCounter { get; set; }
+
+        private Stopwatch _stopwatch;
         private float RunningTime { get; set; }
 
         private WriteableBitmap BitmapSource = new WriteableBitmap(320, 240, 96, 96, System.Windows.Media.PixelFormats.Rgb24, null);
@@ -58,6 +60,7 @@ namespace VideoPlayer
         {
             Source = BitmapSource;
             VideoModel.Play();
+            _stopwatch = new Stopwatch();
             _stopwatch.Start();
             RunningTime = 0.0f;
         }
@@ -76,11 +79,14 @@ namespace VideoPlayer
             if (VideoModel.IsPlaying())
             {
                 RunningTime += _stopwatch.Elapsed.Milliseconds;
-                if (MillisecondsPerFrame <= RunningTime)
+                //RunningTime += _stopwatch.ElapsedTicks * 1000.0f / Stopwatch.Frequency;
+                //if (MillisecondsPerFrame * FrameCounter <= RunningTime)
+                if( MillisecondsPerFrame <= RunningTime)
                 {
                     //Console.WriteLine("{0}", RunningTime);
                     RunningTime -= MillisecondsPerFrame;
                     _stopwatch.Restart();
+                    FrameCounter++;
                     VideoModel.OnVideoTimerTick(BitmapSource);
                 }
                 else
