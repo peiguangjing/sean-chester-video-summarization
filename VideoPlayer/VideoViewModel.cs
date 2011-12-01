@@ -212,7 +212,7 @@ namespace VideoPlayer
                     VideoTimer.Start();
                 }
                 State = PlayerState.Playing;
-                //AudioPlayer.Play();
+                AudioPlayer.Play();
             }
         }
 
