@@ -65,6 +65,16 @@ namespace VideoPlayer
             RunningTime = 0.0f;
         }
 
+        public void Pause()
+        {
+            VideoModel.Pause();
+        }
+
+        public void Stop()
+        {
+            VideoModel.Stop();
+        }
+
         public Video()
         {
             InitializeComponent();

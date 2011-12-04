@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Writer;
 import java.util.Vector;
 
 import utility.Index;
@@ -18,11 +19,20 @@ public class Shot {
 
 	//Motion weight is a weight on the total motion vector distances for a frame.  The idea here is that
 	//frames with more motion are more important and shots with more motion are more important.
-	private final int MotionWeight = 100;
+	
+	//Based on cursory statistics this weight should produce values in the range [1,25]
+	private final int MotionWeight = 40000;
 	//Color weight is a weight on the sum of the color components of the average color for a frame.  The idea
 	//here is that shots that are more saturated/brighter (thus having higher RGB values) are more important.
-	private final int AverageColorWeight = 100;
-	private final int ColorDifferenceWeight = 1000; 
+	
+	//Based on cursory statistics this weight should produce values in the range [0.1,3]
+	private final int AverageColorWeight = 10000;
+	
+	//Based on cursory statistics this weight should produce values in the range [0.6,10]
+	private final int ColorDifferenceWeight = 10000000; 
+	
+	//Based on cursory statistics this weight should produce values in the range [0.01,20]
+	private final int AudioWeight = 1000;
 	
 	private int ShotIndex = 0;
 	private float ShotImportance = 0.0f;
@@ -70,7 +80,7 @@ public class Shot {
 		FrameUpperIndex = upperBound;
 	}
 	
-	public void CalculateShotImportance(Vector<AnalyzedFrame> frames, WaveUtility wur)
+	public void CalculateShotImportance(Vector<AnalyzedFrame> frames, WaveUtility wur, Writer output)
 	{
 		//Apply weights given the information stored in each AnalyzedFrame in the sequence from FrameLowerIndex to FrameUpperIndex
 		double motionContribution = 0.0f;
@@ -82,15 +92,26 @@ public class Shot {
 		{
 			motionContribution += frames.elementAt(index).TotalMotion();
 			colorContribution += frames.elementAt(index).TotalColor();
+			colorDifferenceContribution += frames.elementAt(index).TotalColorDifference();
 		}
+		avgSoundLevel = wur.computeSoundLevelPeriod((double)FrameLowerIndex/framesPerSecond, (double)FrameUpperIndex/framesPerSecond);
+		
+		/*
+		try {
+			output.write("motion: "+Double.toString(motionContribution)+", avgColor: "+Double.toString(colorContribution)+", colorDifferenceContribution: "+Double.toString(colorDifferenceContribution)+", avgSoundLevel: "+Double.toString(avgSoundLevel)+"\n");
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 		motionContribution /= MotionWeight;
 		colorContribution /= AverageColorWeight;
 		colorDifferenceContribution /= ColorDifferenceWeight;
-		avgSoundLevel = wur.computeSoundLevelPeriod((double)FrameLowerIndex/framesPerSecond, (double)FrameUpperIndex/framesPerSecond);
+		avgSoundLevel /= AudioWeight;
 		
 		//how much should the sound weigh? the number ranges from 100 to 5600 for the terminator one
 		
-		ShotImportance =(float) (motionContribution + colorContribution + colorDifferenceContribution);
+		ShotImportance =(float) (motionContribution + colorContribution + colorDifferenceContribution + avgSoundLevel);
 	}
 	
 	public void OutputShot(RandomAccessFile source, FileOutputStream output)

@@ -41,15 +41,18 @@ public class GoThroughVideo{
         this.audioStream = audioStream;
         this.waveRAF = waveRAF;
         this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
-        this.wur = new WaveUtility(audioStream, waveRAF);
+        
+        this.wur = new WaveUtility(new BufferedInputStream(audioStream), waveRAF);
 	}
 	
 	public void filter () {
 
 		AnalyzedFrame currentFrame;
 		try {
+			Writer weightOutput =  new BufferedWriter(new FileWriter("D:/CSCI576/sample1/weights.txt"));
 			FileOutputStream out = null;
 			byte[] frameBuffer = new byte[this.singleImageSize];
+			short [] lastFrameBytesBuffer = new short[singleImageSize];
 			int frameIndex = 0;
 			int innerFrameIndex = 0;
 			float currentSummaryLength = 0.0f;
@@ -74,7 +77,7 @@ public class GoThroughVideo{
 					for(int image=0; image < IMAGEBUFFERSIZE; image++, frameIndex++)
 					{
 						currentFrame = new AnalyzedFrame();
-						currentFrame.AnalyzeFrame(bytesBuffer[image]);
+						currentFrame.AnalyzeFrame(bytesBuffer[image],image == 0 ? lastFrameBytesBuffer : bytesBuffer[image-1]);
 						if( (frameIndex+image)>0 && currentFrame.ShotBoundaryDetection(AnalyzedFrames.lastElement())) //Difference between old and new frame is such that we have a new shot
 						{
 							if(  frameIndex + image - LastShotStartIndex > 5)
@@ -85,7 +88,9 @@ public class GoThroughVideo{
 						}
 						AnalyzedFrames.add(currentFrame);
 					}
+					lastFrameBytesBuffer = bytesBuffer[IMAGEBUFFERSIZE-1];
 				}
+				
 			}
 			
 			sourceLength = frameIndex * (1.0f/24.0f);
@@ -105,9 +110,10 @@ public class GoThroughVideo{
 			//Iterate through shots to calculate importance
 			for(Shot currentShot : Shots)
 			{
-				currentShot.CalculateShotImportance(AnalyzedFrames, wur);
+				currentShot.CalculateShotImportance(AnalyzedFrames, wur, weightOutput);
 				ShotPriorityQueue.add(currentShot);
 			}
+			weightOutput.close();
 			
 			//Now we have a collection of shots ordered by their importance
 			Shot currentShot;
@@ -122,7 +128,7 @@ public class GoThroughVideo{
 			}while( targetSummaryLength > currentSummaryLength );
 			
 			
-			File outvideo = new File("outvideo.rgb");
+			File outvideo = new File("D:/CSCI576/sample1/outvideo.rgb");
 			out = new FileOutputStream(outvideo, true);	//append to this output file
 			
 			Shot toOutput;
@@ -147,7 +153,7 @@ public class GoThroughVideo{
 			
 			/*
 			//test
-			WaveUtility wu = new WaveUtility(audioStream, this.bufferSeconds);
+			WaveUtility wu = new WaveUtility(audioStream, sourceLength);
 			double soundLevel;
 			int end = 0;
 			int counter = 0;
@@ -170,9 +176,8 @@ public class GoThroughVideo{
 			System.out.println(" soundLevel of the interval is: " + soundLevel);
 			wur.appendToOutputBuffer(wur.getBuffer());
 			wur.saveWavFile("test.wav");
-			
+		
 			*/
-	
 
 		} catch (IOException e) {
 			e.printStackTrace();

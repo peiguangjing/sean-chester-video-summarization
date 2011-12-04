@@ -70,5 +70,15 @@ namespace VideoPlayer
             video.Play();
             //timer.Start();
         }
+
+        private void Pause_Click(object sender, RoutedEventArgs e)
+        {
+            video.Pause();
+        }
+
+        private void Stop_Click(object sender, RoutedEventArgs e)
+        {
+            video.Stop();
+        }
     }
 }

@@ -218,12 +218,14 @@ namespace VideoPlayer
 
         public void Pause()
         {
+            AudioPlayer.Stop();
             VideoTimer.Stop();
             State = PlayerState.Paused;
         }
 
         public void Stop()
         {
+            AudioPlayer.Stop();
             VideoTimer.Stop();
             State = PlayerState.Stopped;
         }
