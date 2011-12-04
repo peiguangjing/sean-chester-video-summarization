@@ -2,6 +2,8 @@ package AnalyzedFrame;
 
 import histogram.Histogram;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.lang.Math;
 
 import utility.ColorComponent;
@@ -18,7 +20,7 @@ public class AnalyzedFrame {
 
 	private int FrameIndex = -1;
 	private int SceneIndex = -1;
-	private float TotalMotion = -1;
+	private float TotalMotion = 0;
 	private Vector2 AverageMotionDirection = new Vector2();
 	private Colour AverageColor = new Colour(); // Corresponds to low frequency
 	private Colour ColorDifferenceSum = new Colour(); // Corresponds to high frequency
@@ -31,47 +33,52 @@ public class AnalyzedFrame {
 	}
 	
 	
-	public void AnalyzeFrame(short[] frame)
+	public void AnalyzeFrame(short[] frame,short[] lastFrame)
 	{
-		for(int blockX = 0; blockX < (FrameWidth / MacroBlockSize); blockX += MacroBlockSize)
+		for(int blockX = 0; blockX < (FrameWidth / MacroBlockSize); blockX ++)
 		{
-			for(int blockY = 0; blockY < (FrameHeight / MacroBlockSize); blockY += MacroBlockSize)
+			for(int blockY = 0; blockY < (FrameHeight / MacroBlockSize); blockY ++)
 			{
-				AnalyzeMotionContent(frame, blockX, blockY);
+				AnalyzeMotionContent(frame, lastFrame, blockX, blockY);
 				AnalyzeColorValue(frame, blockX, blockY);
 			}
 		}
 		AverageColor.Divide(FrameHeight*FrameWidth);
+		
 	}
 	
-	public void AnalyzeMotionContent(short[] frame, int blockX, int blockY)
+	public void AnalyzeMotionContent(short[] frame, short[] lastFrame,int blockX, int blockY)
 	{
-		int beginX = blockX * MacroBlockSize - MacroBlockSearchArea;
-		int beginY = blockY * MacroBlockSize - MacroBlockSearchArea;
+		int originalX = blockX * MacroBlockSize;
+		int originalY = blockY * MacroBlockSize;
+		int beginX = originalX - MacroBlockSearchArea;
+		int beginY = originalY - MacroBlockSearchArea;
+		
+		
 		int interationLimit = (1 + 2*MacroBlockSearchArea);
 		
 		int lowestXBlock=0;
 		int lowestYBlock=0;
-		int lowestBlockDifferenceSum=1000000;
+		int lowestBlockDifferenceSum=100000000;
 		int currentBlockDifferenceSum;
 		
 		int targetIndex, originalIndex;
 		
 		Vector2 blockMotionVector = new Vector2();
-		for(int searchTargetX = beginX >= 0 ? beginX : 0; searchTargetX < beginX + interationLimit && searchTargetX < FrameWidth; searchTargetX++)
+		for(int searchTargetX = beginX >= 0 ? beginX : 0; (searchTargetX < beginX + interationLimit) && searchTargetX < FrameWidth; searchTargetX++)
 		{
-			for(int searchTargetY = beginY >= 0 ? beginY : 0; searchTargetY < beginY + interationLimit && searchTargetY < FrameHeight; searchTargetY++)
+			for(int searchTargetY = beginY >= 0 ? beginY : 0; (searchTargetY < beginY + interationLimit) && searchTargetY < FrameHeight; searchTargetY++)
 			{
 				currentBlockDifferenceSum = 0;
-				for(int pixelX = (beginX + searchTargetX) >= 0 ? beginX + searchTargetX : 0; pixelX < beginX + MacroBlockSize && pixelX < FrameWidth; pixelX++)
+				for(int pixelX = searchTargetX, offsetX = 0; offsetX < MacroBlockSize && pixelX < FrameWidth; pixelX++,offsetX++)
 				{
-					for(int pixelY = (beginY + searchTargetY) >= 0 ? beginY + searchTargetY : 0; pixelY < beginY + MacroBlockSize && pixelY < FrameHeight; pixelY++)
+					for(int pixelY = searchTargetY, offsetY = 0; offsetY < MacroBlockSize && pixelY < FrameHeight; pixelY++,offsetY++)
 					{
 						targetIndex = Index.FromXYtoIndex(pixelX, pixelY);
-						originalIndex = Index.FromXYtoIndex(beginX+MacroBlockSearchArea, beginY+MacroBlockSearchArea);
-						currentBlockDifferenceSum += Math.abs(frame[targetIndex] - frame[originalIndex]);
-						currentBlockDifferenceSum += Math.abs(frame[targetIndex + ColorComponent.GREEN.Offset()] - frame[originalIndex + ColorComponent.GREEN.Offset()]);
-						currentBlockDifferenceSum += Math.abs(frame[targetIndex + ColorComponent.BLUE.Offset()] - frame[originalIndex + ColorComponent.BLUE.Offset()]);
+						originalIndex = Index.FromXYtoIndex(originalX+offsetX, originalY+offsetY);
+						currentBlockDifferenceSum += Math.abs(lastFrame[targetIndex] - frame[originalIndex]);
+						currentBlockDifferenceSum += Math.abs(lastFrame[targetIndex + ColorComponent.GREEN.Offset()] - frame[originalIndex + ColorComponent.GREEN.Offset()]);
+						currentBlockDifferenceSum += Math.abs(lastFrame[targetIndex + ColorComponent.BLUE.Offset()] - frame[originalIndex + ColorComponent.BLUE.Offset()]);
 					}
 				}
 				if( currentBlockDifferenceSum < lowestBlockDifferenceSum)
@@ -83,8 +90,8 @@ public class AnalyzedFrame {
 			}
 		}
 		
-		blockMotionVector.X += lowestXBlock - (blockX * MacroBlockSize);
-		blockMotionVector.Y += lowestYBlock - (blockY * MacroBlockSize);
+		blockMotionVector.X = originalX - lowestXBlock;
+		blockMotionVector.Y = originalY - lowestYBlock;
 		TotalMotion += blockMotionVector.Distance();
 		AverageMotionDirection = Vector2.Add(AverageMotionDirection, blockMotionVector);
 	}

@@ -21,6 +21,6 @@ public class Vector2 {
 	
 	public double Distance()
 	{
-		return Math.sqrt(X * X + Y*Y);
+		return Math.sqrt(X * X + Y * Y);
 	}
 }
