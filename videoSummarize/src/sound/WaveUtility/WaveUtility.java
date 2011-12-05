@@ -47,7 +47,8 @@ public class WaveUtility {
     	createBuffer(bufferSeconds);
     }
     
-    public WaveUtility(BufferedInputStream waveStream, RandomAccessFile waveRAF) {
+//    public WaveUtility(BufferedInputStream waveStream, RandomAccessFile waveRAF) {
+    public WaveUtility(FileInputStream waveStream, RandomAccessFile waveRAF) {
     	this.waveStream = waveStream;
     	this.waveRAF = waveRAF;
     	
@@ -61,9 +62,9 @@ public class WaveUtility {
     	
     	this.audioFormat = this.audioInputStream.getFormat();
     	//dump to test
-    	System.out.println("Wave Encoding: " + this.audioFormat.getEncoding().toString());
-    	System.out.println("Wave Sample Rate: " + this.audioFormat.getSampleRate());
-    	System.out.println("Wave Channels: " + this.audioFormat.getChannels());
+//    	System.out.println("Wave Encoding: " + this.audioFormat.getEncoding().toString());
+//    	System.out.println("Wave Sample Rate: " + this.audioFormat.getSampleRate());
+//    	System.out.println("Wave Channels: " + this.audioFormat.getChannels());
     	
     	this.bytesPerFrame = this.audioFormat.getFrameSize();
         if (this.bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
@@ -74,12 +75,15 @@ public class WaveUtility {
             System.err.println("no frame rate specified by the wav file");
         }
     	
+    	//System.out.println("Wave Bytes per Second: " + (bytesPerFrame * frameRate) + " and " + 2*this.audioFormat.getSampleRate());
+    	
     }
     
     public void createBuffer (double bufferSeconds) {
     	this.bufferSeconds = bufferSeconds;    	
-
-    	this.numBytes = (int) (Math.ceil(this.bytesPerFrame * this.frameRate * this.bufferSeconds));
+    	int numberOfBytes = (int) (Math.ceil(this.bytesPerFrame * this.frameRate * this.bufferSeconds));
+    	numberOfBytes = numberOfBytes + (numberOfBytes % 2);
+    	this.numBytes = numberOfBytes;
     	this.audioBytes = new byte[this.numBytes];
     }
     
@@ -108,11 +112,14 @@ public class WaveUtility {
     	return 0;
     }
     
-    public int readInBufferRandom (long offet) {
+    public int readInBufferRandom (long ft) {
     	int numBytes = 0;
     	int totalNumBytesRead = 0;
+    	long evenFileOffset = ft + (ft % 2);
+    	
     	try {
-    		this.waveRAF.seek(offet);
+    		//this.waveRAF.seek(offet);
+    		this.waveRAF.seek(evenFileOffset + 44); // try adding the header
     		while (totalNumBytesRead < this.audioBytes.length && (numBytes = this.waveRAF.read(this.audioBytes)) >0 ) {
     			totalNumBytesRead += numBytes;
     		};
@@ -121,7 +128,8 @@ public class WaveUtility {
     		e.printStackTrace();
     	}
     	
-    	this.offset = totalNumBytesRead;
+//    	this.offset = totalNumBytesRead;
+    	this.offset = this.audioBytes.length;
     	
     	if (numBytes == -1) {
     		return -1;
@@ -154,14 +162,14 @@ public class WaveUtility {
     
     public double computeSoundLevelPeriod(double fromSecond, double toSecond) {
     	double soundLevel = 0;
-    	long offset = 0;
+    	long fileoffset = 0;
     	
     	if (toSecond - fromSecond <= 0) {
     		return -1;
     	}
     	createBuffer((toSecond - fromSecond));
-    	offset = (long) Math.floor(this.bytesPerFrame * this.frameRate * fromSecond);
-    	readInBufferRandom(offset);
+    	fileoffset = (long) Math.floor(this.bytesPerFrame * this.frameRate * fromSecond);
+    	readInBufferRandom(fileoffset);
     	
     	soundLevel = this.computeSoundLevel();
     	
@@ -170,7 +178,7 @@ public class WaveUtility {
     
     public void appendToOutputBuffer( byte[] bytes ) {
     	try {
-    		baosAudio.write(bytes);
+    		baosAudio.write(bytes); 
     	} catch (IOException e){
     		e.printStackTrace();
     	}
@@ -179,10 +187,15 @@ public class WaveUtility {
     public void saveWavFile (String filepath) {
    	  	
     	try {
-    		OutputStream os = new FileOutputStream(filepath); 
-    		DataOutputStream outFile = new DataOutputStream(os);
+//    		OutputStream os = new FileOutputStream(filepath); 
+//    		DataOutputStream outFile = new DataOutputStream(os);
+    		File outFile = new File(filepath);
     		byte[] myData = baosAudio.toByteArray();
     		int myDataSize = myData.length;
+    		InputStream is = new ByteArrayInputStream(myData);
+    		AudioInputStream ais = new AudioInputStream(is, audioFormat, (long) myDataSize/bytesPerFrame);
+    		AudioSystem.write(ais, AudioFileFormat.Type.WAVE, outFile);
+/*
     		//wave header
     		outFile.writeBytes("RIFF");
     		outFile.write(intToByteArray((int) (myDataSize + 44 - 8)), 0, 4);     // 04 - how big is the rest of the file
@@ -201,7 +214,7 @@ public class WaveUtility {
             
             outFile.close();
             os.close();
-    		
+*/    		
     	} catch (IOException e) {
     		e.printStackTrace();
     	}

@@ -42,14 +42,15 @@ public class GoThroughVideo{
         this.waveRAF = waveRAF;
         this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
         
-        this.wur = new WaveUtility(new BufferedInputStream(audioStream), waveRAF);
+        //this.wur = new WaveUtility(new BufferedInputStream(audioStream), waveRAF);
+        this.wur = new WaveUtility(audioStream, waveRAF);
 	}
 	
 	public void filter () {
 
 		AnalyzedFrame currentFrame;
 		try {
-			Writer weightOutput =  new BufferedWriter(new FileWriter("D:/CSCI576/sample1/weights.txt"));
+			Writer weightOutput =  new BufferedWriter(new FileWriter("weights.txt"));
 			FileOutputStream out = null;
 			byte[] frameBuffer = new byte[this.singleImageSize];
 			short [] lastFrameBytesBuffer = new short[singleImageSize];
@@ -127,30 +128,44 @@ public class GoThroughVideo{
 				FinalSummary.add(currentShot);
 			}while( targetSummaryLength > currentSummaryLength );
 			
+			//trim currentShot - the least important one
+			currentShot.trimTime(currentSummaryLength - targetSummaryLength);
 			
-			File outvideo = new File("D:/CSCI576/sample1/outvideo.rgb");
+			//File outvideo = new File("D:/CSCI576/sample1/outvideo.rgb");
+			File outvideo = new File("outvideo.rgb");
 			out = new FileOutputStream(outvideo, true);	//append to this output file
 			
 			Shot toOutput;
 			while( FinalSummary.size() > 0 )
 			{
 				toOutput = FinalSummary.remove();
-				if(FinalSummary.size() > 0)
-				{
-					toOutput.OutputShot(imageStream, out);
-					toOutput.OutputSoundToBuffer(wur);
-				}
+//				if(FinalSummary.size() > 0)
+//				{
+				
+				toOutput.OutputShot(imageStream, out);
+				toOutput.OutputSoundToBuffer(wur);
+				
+//				}
+/*				
 				else // last element
 				{
+					if (currentSummaryLength - targetSummaryLength < 0) {
+						System.out.println("NEGATIVE DIFFERENCE " + "currentSummaryLength: " + currentSummaryLength + " targetSummaryLength: " + targetSummaryLength);
+					}
+					System.out.println("currentSummaryLength: " + currentSummaryLength + " targetSummaryLength: " + targetSummaryLength);
+					System.out.println("currentSummaryLength - targetSummaryLength: " + (currentSummaryLength -targetSummaryLength));
+					System.out.println("current shot time: " + toOutput.ShotTime());
+					
 					toOutput.OutputShot(imageStream, out, currentSummaryLength - targetSummaryLength);
 					toOutput.OutputSoundToBufferPartial(wur, currentSummaryLength - targetSummaryLength);
 				}
 				//out.flush();
 				//out.write(this.bytesBuffer, this.singleImageSize*i, this.singleImageSize);
+*/
 			}
 			out.close();
 			wur.saveWavFile("outaudio.wav");
-			
+		
 			/*
 			//test
 			WaveUtility wu = new WaveUtility(audioStream, sourceLength);
@@ -163,26 +178,34 @@ public class GoThroughVideo{
 				soundLevel = wu.computeSoundLevel();
 				System.out.println(counter + " soundLevel of the period is: " + soundLevel);
 			} while ( end == 0 );
-			
-			
-		    double soundLevel = 0;
-			WaveUtility wur = new WaveUtility(audioStream, waveRAF);
-			
-			soundLevel = wur.computeSoundLevelPeriod(17, 60);
-			System.out.println(" soundLevel of the interval is: " + soundLevel);
-			wur.appendToOutputBuffer(wur.getBuffer());
-	
-			soundLevel = wur.computeSoundLevelPeriod(0, 5);
-			System.out.println(" soundLevel of the interval is: " + soundLevel);
-			wur.appendToOutputBuffer(wur.getBuffer());
-			wur.saveWavFile("test.wav");
-		
 			*/
+			/*
+		    double soundLevel = 0;
+			
+			soundLevel = wur.computeSoundLevelPeriod(17, 27.7);
+			System.out.println(" soundLevel of the interval is: " + soundLevel);
+			wur.appendToOutputBuffer(wur.getBuffer());
+			
+			soundLevel = wur.computeSoundLevelPeriod(0, 5.33);
+			System.out.println(" soundLevel of the interval is: " + soundLevel);
+			wur.appendToOutputBuffer(wur.getBuffer());
+			
+			soundLevel = wur.computeSoundLevelPeriod(17.11, 25.22);
+			System.out.println(" soundLevel of the interval is: " + soundLevel);
+			wur.appendToOutputBuffer(wur.getBuffer());
+			
+			soundLevel = wur.computeSoundLevelPeriod(0, 5.88);
+			System.out.println(" soundLevel of the interval is: " + soundLevel);
+			wur.appendToOutputBuffer(wur.getBuffer());
+			
+			wur.saveWavFile("test.wav");
+		*/
+			
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
-		
+
 	}
 	
 }

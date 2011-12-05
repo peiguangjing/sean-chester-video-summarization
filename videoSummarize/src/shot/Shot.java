@@ -112,6 +112,8 @@ public class Shot {
 		//how much should the sound weigh? the number ranges from 100 to 5600 for the terminator one
 		
 		ShotImportance =(float) (motionContribution + colorContribution + colorDifferenceContribution + avgSoundLevel);
+		
+		
 	}
 	
 	public void OutputShot(RandomAccessFile source, FileOutputStream output)
@@ -132,11 +134,12 @@ public class Shot {
 			e.printStackTrace();
 		}
 	}
-	
+/*	
 	public void OutputShot(RandomAccessFile source, FileOutputStream output, float partialTime)
 	{
 		// TODO: maybe (1 - framesToPull) is needed? 
-		int framesToPull = (int)((partialTime / ShotTime()) * (FrameUpperIndex - FrameLowerIndex + 1));
+		//int framesToPull = (int)((partialTime / ShotTime()) * (FrameUpperIndex - FrameLowerIndex + 1));
+		int framesToPull = (int)((1 - partialTime / ShotTime()) * (FrameUpperIndex - FrameLowerIndex + 1));
 		byte[] buffer = new byte[320*240*3];
 		try {
 			source.seek(Index.FrameIndexToBytes(FrameLowerIndex));
@@ -150,15 +153,24 @@ public class Shot {
 			e.printStackTrace();
 		}
 	}
+*/	
+	public void trimTime(float partialTime) {
+		double rate = (1 - partialTime/ShotTime());
+		FrameUpperIndex = (long) (FrameLowerIndex + rate * (FrameUpperIndex - FrameLowerIndex));
+	}
 	
 	public void OutputSoundToBuffer(WaveUtility wur) {
 		wur.readInBufferRandomPeriod((double)FrameLowerIndex/framesPerSecond, (double)FrameUpperIndex/framesPerSecond);
 		wur.appendToOutputBuffer(wur.getBuffer());
 	}
 	
+/*	
 	public void OutputSoundToBufferPartial(WaveUtility wur, double overFlowSeconds) {
 		double rate = (1 - overFlowSeconds/ShotTime());
+		System.out.println("OutputSoundToBufferPartial rate is: " + rate);
 		wur.readInBufferRandomPeriod((double)FrameLowerIndex/framesPerSecond, (double)(FrameLowerIndex + rate * (FrameUpperIndex - FrameLowerIndex))/framesPerSecond);
 		wur.appendToOutputBuffer(wur.getBuffer());
 	}
+*/
+	
 }
