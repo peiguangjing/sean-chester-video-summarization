@@ -42,8 +42,8 @@ public class GoThroughVideo{
         this.waveRAF = waveRAF;
         this.bytesBuffer = new short[this.IMAGEBUFFERSIZE][this.singleImageSize];
         
-        //this.wur = new WaveUtility(new BufferedInputStream(audioStream), waveRAF);
-        this.wur = new WaveUtility(audioStream, waveRAF);
+        this.wur = new WaveUtility(new BufferedInputStream(audioStream), waveRAF);
+        //this.wur = new WaveUtility(audioStream, waveRAF);
 	}
 	
 	public void filter () {

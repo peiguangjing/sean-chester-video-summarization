@@ -23,7 +23,10 @@ namespace VideoPlayer
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private Timer timer = new Timer();
-        //public VideoViewModel Video { get; set; }
+        private bool QueuedPlay { get; set; }
+        private string QueuedVideoFile { get; set; }
+        private string QueuedAudioFile { get; set; }
+        public Video Video { get { return video; } }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -38,9 +41,38 @@ namespace VideoPlayer
         public MainWindow()
         {
             InitializeComponent();
-            //timer.Elapsed += (obj, args) => { Dispatcher.Invoke((Action)delegate() { Video.OnVideoTimerTick(); },System.Windows.Threading.DispatcherPriority.Send); };
-            //timer.Interval = 1000.0f / 24.0f;
-            //Video = new VideoViewModel();
+            
+        }
+
+        public void OpenAndPlay()
+        {
+            if (!video.OpenFile(QueuedVideoFile, QueuedAudioFile))
+            {
+                Console.WriteLine("Error opening/parsing video");
+
+            }
+            else
+            {
+                System.Threading.Thread.Sleep(200);
+                video.Play();
+            }
+        }
+
+        public void OpenAndPlay(string videoFile, string audioFile)
+        {
+            if (!video.OpenFile(videoFile, audioFile))
+            {
+                Console.WriteLine("Error opening/parsing video");
+                System.Threading.Thread.Sleep(200);
+                video.Play();
+            }
+        }
+
+        public void QueuedOpenAndPlay(string videoFile, string audioFile)
+        {
+            QueuedPlay = true;
+            QueuedVideoFile = videoFile;
+            QueuedAudioFile = audioFile;
         }
 
         private void FileOpen_Click(object sender, RoutedEventArgs e)
@@ -79,6 +111,14 @@ namespace VideoPlayer
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
             video.Stop();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (QueuedPlay)
+            {
+                OpenAndPlay();
+            }
         }
     }
 }

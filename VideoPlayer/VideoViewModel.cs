@@ -62,6 +62,7 @@ namespace VideoPlayer
         }
         public String VideoPath { get; set; }
         public String AudioPath { get; set; }
+
         public uint OverallFrameCount { get; set; }
 
         private bool AudioOpened { get; set; }
@@ -84,11 +85,7 @@ namespace VideoPlayer
             OverallFrameCount = 0;
 
             VideoTimer = new Timer(1000.0f / (float)FrameRate);
-            //VideoTimer.Interval = new TimeSpan(0, 0, 0, 0,(int) ( 1000.0f / (float)FrameRate));
             VideoTimer.AutoReset = true;
-            //VideoTimer.IsEnabled = false;
-            //VideoTimer.Elapsed += OnVideoTimerTick;
-            //VideoTimer.Tick += OnVideoTimerTick;
             State = PlayerState.Unstarted;
             CurrentBuffer = 0;
 
@@ -211,8 +208,10 @@ namespace VideoPlayer
                 {
                     VideoTimer.Start();
                 }
-                State = PlayerState.Playing;
+                //Task.Factory.StartNew(() => { System.Threading.Thread.Sleep(1000); AudioPlayer.Play(); });
                 AudioPlayer.Play();
+               
+                State = PlayerState.Playing;
             }
         }
 

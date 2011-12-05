@@ -42,9 +42,21 @@ namespace VideoPlayer
 
         public VideoViewModel VideoModel { get; set; }
 
-        private static float MillisecondsPerFrame = 1000.0f / 23.97f;
+        private static float MillisecondsPerFrame = 1000.0f / 24.67f;
 
-        private int FrameCounter { get; set; }
+        private int _frameCounter;
+        public int FrameCounter 
+        {
+            get
+            {
+                return _frameCounter;
+            }
+            private set
+            {
+                _frameCounter = value;
+                NotifyPropertyChanged("FrameCounter");
+            }
+        }
 
         private Stopwatch _stopwatch;
         private float RunningTime { get; set; }

@@ -47,8 +47,8 @@ public class WaveUtility {
     	createBuffer(bufferSeconds);
     }
     
-//    public WaveUtility(BufferedInputStream waveStream, RandomAccessFile waveRAF) {
-    public WaveUtility(FileInputStream waveStream, RandomAccessFile waveRAF) {
+    public WaveUtility(BufferedInputStream waveStream, RandomAccessFile waveRAF) {
+    //public WaveUtility(FileInputStream waveStream, RandomAccessFile waveRAF) {
     	this.waveStream = waveStream;
     	this.waveRAF = waveRAF;
     	
